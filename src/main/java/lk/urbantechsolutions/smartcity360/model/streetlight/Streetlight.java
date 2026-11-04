@@ -18,8 +18,10 @@ public class Streetlight implements AbstractStreetlight {
     @JoinColumn(name = "street_id")
     private Street street;
 
-    private double longitude;
-    private double latitude;
+    @Column(precision = 9, scale = 4)
+    private BigDecimal longitude;
+    @Column(precision = 9, scale = 4)
+    private BigDecimal latitude;
 
     @Transient
     private boolean powerOn;
@@ -28,7 +30,7 @@ public class Streetlight implements AbstractStreetlight {
     @JoinColumn(name = "type_id")
     private SharedStreetlight sharedStreetlight;
 
-    public Streetlight(double longitude, double latitude, SharedStreetlight sharedStreetlight) {
+    public Streetlight(BigDecimal longitude, BigDecimal latitude, SharedStreetlight sharedStreetlight) {
         this.longitude = longitude;
         this.latitude = latitude;
         this.sharedStreetlight = sharedStreetlight;
@@ -57,19 +59,19 @@ public class Streetlight implements AbstractStreetlight {
         this.street = street;
     }
 
-    public double getLongitude() {
+    public BigDecimal getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(double longitude) {
+    public void setLongitude(BigDecimal longitude) {
         this.longitude = longitude;
     }
 
-    public double getLatitude() {
+    public BigDecimal getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(double latitude) {
+    public void setLatitude(BigDecimal latitude) {
         this.latitude = latitude;
     }
 

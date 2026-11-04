@@ -44,7 +44,7 @@ public class StreetlightServiceImpl implements StreetlightService {
 
     @Override
     @Transactional
-    public void addStreetlight(Long streetId, double longitude, double latitude,
+    public void addStreetlight(Long streetId, BigDecimal longitude, BigDecimal latitude,
                                BigDecimal wattage, String color, int colorTemperature,
                                LightDistribution distribution) {
         SharedStreetlight shared =

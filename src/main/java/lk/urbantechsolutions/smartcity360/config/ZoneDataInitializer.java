@@ -8,6 +8,7 @@ import lk.urbantechsolutions.smartcity360.repository.CityRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.List;
 public class ZoneDataInitializer {
 
     @Bean
+    @Order(1)
     CommandLineRunner seedDatabase(CityRepository cityRepository) {
         return args -> {
             if (cityRepository.count() > 0) {

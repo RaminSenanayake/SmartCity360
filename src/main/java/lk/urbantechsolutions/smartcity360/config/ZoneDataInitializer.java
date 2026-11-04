@@ -16,8 +16,8 @@ import java.util.List;
 @Configuration
 public class ZoneDataInitializer {
 
+    @Order(0)
     @Bean
-    @Order(1)
     CommandLineRunner seedDatabase(CityRepository cityRepository) {
         return args -> {
             if (cityRepository.count() > 0) {

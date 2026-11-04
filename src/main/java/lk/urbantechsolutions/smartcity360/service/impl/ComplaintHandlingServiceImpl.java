@@ -32,7 +32,7 @@ public class ComplaintHandlingServiceImpl implements ComplaintHandlingService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Complaint handleComplaint(Long residentId, String complaintText, ComplaintSeverity severity) {
         Resident resident = residentRepository.findById(residentId)
                 .orElseThrow(() -> new EntityNotFoundException("Resident " + residentId + " not found"));

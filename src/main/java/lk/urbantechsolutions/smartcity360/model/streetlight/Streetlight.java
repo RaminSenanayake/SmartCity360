@@ -18,9 +18,9 @@ public class Streetlight implements AbstractStreetlight {
     @JoinColumn(name = "street_id")
     private Street street;
 
-    @Column(precision = 9, scale = 4)
+    @Column(precision = 9, scale = 6)
     private BigDecimal longitude;
-    @Column(precision = 9, scale = 4)
+    @Column(precision = 9, scale = 6)
     private BigDecimal latitude;
 
     @Transient

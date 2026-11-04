@@ -9,10 +9,12 @@ import lk.urbantechsolutions.smartcity360.repository.SupervisorRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 @Configuration
 public class StaffDataInitializer {
     @Bean
+    @Order(1)
     CommandLineRunner seedStaff(CityManagerRepository cityManagerRepository,
                                 SupervisorRepository supervisorRepository,
                                 LocalStaffRepository localStaffRepository) {

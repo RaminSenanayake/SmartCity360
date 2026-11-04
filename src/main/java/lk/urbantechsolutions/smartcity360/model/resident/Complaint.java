@@ -54,10 +54,9 @@ public class Complaint {
         private String handledByName;
         private String escalationPath;
 
-        public Builder(Resident resident, String complaint, ComplaintSeverity severity) {
+        public Builder(Resident resident, String complaint) {
             this.resident = resident;
             this.complaint = complaint;
-            this.severity = severity;
         }
 
         public Builder setResident(Resident resident) {

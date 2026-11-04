@@ -1,6 +1,7 @@
 package lk.urbantechsolutions.smartcity360.model.zone;
 
 import jakarta.persistence.*;
+import lk.urbantechsolutions.smartcity360.model.streetlight.Streetlight;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -15,6 +16,8 @@ public class Street implements Zone {
     private String name;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "street")
     private List<Building> buildings = new ArrayList<>();
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "street")
+    private List<Streetlight> streetlights = new ArrayList<>();
 
 
     @ManyToOne
@@ -60,21 +63,29 @@ public class Street implements Zone {
 
     @Override
     public boolean isPowerOn() {
-        return buildings.stream().anyMatch(Building::isPowerOn);
+        return buildings.stream().anyMatch(Building::isPowerOn)
+                && streetlights.stream().anyMatch(Streetlight::isPowerOn);
     }
 
     @Override
     public void turnOnPower() {
         buildings.forEach(Building::turnOnPower);
+        streetlights.forEach(Streetlight::turnPowerOn);
     }
 
     @Override
     public void shutDownPower() {
         buildings.forEach(Building::shutDownPower);
+        streetlights.forEach(Streetlight::turnPowerOff);
     }
 
     @Override
     public BigDecimal getPowerUsage() {
-        return buildings.stream().map(Building::getPowerUsage).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return buildings.stream().map(Building::getPowerUsage)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .add(
+                        streetlights.stream().map(Streetlight::getUsage)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                );
     }
 }

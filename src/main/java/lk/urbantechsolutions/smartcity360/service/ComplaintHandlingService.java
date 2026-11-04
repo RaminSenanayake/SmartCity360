@@ -1,7 +1,7 @@
 package lk.urbantechsolutions.smartcity360.service;
 
-import lk.urbantechsolutions.smartcity360.model.role.Resident;
+import lk.urbantechsolutions.smartcity360.model.resident.Complaint;
 
 public interface ComplaintHandlingService {
-    void handleComplaint(Resident resident);
+    Complaint handleComplaint(Complaint complaint);
 }

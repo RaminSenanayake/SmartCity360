@@ -4,25 +4,27 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lk.urbantechsolutions.smartcity360.model.resident.Complaint;
+import lk.urbantechsolutions.smartcity360.model.resident.ComplaintSeverity;
 
 import java.util.List;
 
 @Entity
 @Table(name = "city_managers")
 public class CityManager extends Staff {
-
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "cityManager")
     private List<Supervisor> supervisors;
 
     @Override
-    protected boolean canHandle(Resident resident) {
-        return resident.getComplaintSeverity().equals(ComplaintSeverity.HIGH);
+    protected String getRole() {
+        return "City Manager";
     }
 
     @Override
-    protected void process(Resident resident) {
-        System.out.println("High Severity handling");
+    protected boolean canHandle(Complaint complaint) {
+        return complaint.getSeverity().equals(ComplaintSeverity.HIGH);
     }
+
 
     @Override
     protected Staff getNextHandler() {

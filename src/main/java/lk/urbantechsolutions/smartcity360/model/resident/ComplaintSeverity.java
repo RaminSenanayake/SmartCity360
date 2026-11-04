@@ -1,4 +1,4 @@
-package lk.urbantechsolutions.smartcity360.model.role;
+package lk.urbantechsolutions.smartcity360.model.resident;
 
 public enum ComplaintSeverity {
     LOW,

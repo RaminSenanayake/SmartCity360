@@ -1,6 +1,8 @@
 package lk.urbantechsolutions.smartcity360.model.role;
 
 import jakarta.persistence.*;
+import lk.urbantechsolutions.smartcity360.model.resident.Complaint;
+import lk.urbantechsolutions.smartcity360.model.resident.ComplaintSeverity;
 
 import java.util.List;
 
@@ -18,14 +20,15 @@ public class Supervisor extends Staff {
     public CityManager getCityManager() { return cityManager; }
     public void setCityManager(CityManager cityManager) { this.cityManager = cityManager; }
 
+
     @Override
-    protected boolean canHandle(Resident resident) {
-        return resident.getComplaintSeverity().equals(ComplaintSeverity.MEDIUM);
+    protected String getRole() {
+        return "Supervisor";
     }
 
     @Override
-    protected void process(Resident resident) {
-        System.out.println("Medium Severity handling");
+    protected boolean canHandle(Complaint complaint) {
+        return complaint.getSeverity().equals(ComplaintSeverity.MEDIUM);
     }
 
     @Override

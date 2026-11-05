@@ -17,3 +17,7 @@ logging:
     org:
       springframework:
         jdbc: debug
+
+energy-meter:
+  access-token: ${ENERGY_METER_ACCESS_TOKEN}
+  encryption-key: ${ENERGY_METER_ENCRYPTION_KEY}

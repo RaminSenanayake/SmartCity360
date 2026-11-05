@@ -20,7 +20,7 @@ public class Street implements Zone {
     private List<Streetlight> streetlights = new ArrayList<>();
 
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "district_id")
     private District district;
 

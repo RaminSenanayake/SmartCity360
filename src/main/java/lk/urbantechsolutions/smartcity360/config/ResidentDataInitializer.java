@@ -1,11 +1,12 @@
 package lk.urbantechsolutions.smartcity360.config;
 
-import lk.urbantechsolutions.smartcity360.model.resident.Resident;
+import lk.urbantechsolutions.smartcity360.service.ResidentService;
 import lk.urbantechsolutions.smartcity360.repository.ResidentRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 
@@ -14,8 +15,9 @@ public class ResidentDataInitializer {
 
     @Bean
     @Order(3)
-    CommandLineRunner seedResidents(ResidentRepository residentRepository) {
-        return args -> {
+    CommandLineRunner seedResidents(ResidentRepository residentRepository, ResidentService residentService,
+                                    TransactionTemplate transactionTemplate) {
+        return args -> transactionTemplate.executeWithoutResult(status -> {
             if (residentRepository.count() > 0) {
                 return;
             }
@@ -28,7 +30,7 @@ public class ResidentDataInitializer {
                     "Chathura Bandara", "Sithara Dissanayake", "Yasiru Herath"
             );
 
-            residentRepository.saveAll(names.stream().map(Resident::new).toList());
-        };
+            names.forEach(residentService::addResident);
+        });
     }
 }

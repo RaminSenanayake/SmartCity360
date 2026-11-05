@@ -9,6 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -34,8 +35,9 @@ public class StreetlightDataInitializer {
     @Order(2) // runs after the zone seeder, so streets already exist
     CommandLineRunner seedStreetlights(StreetRepository streetRepository,
                                        StreetlightRepository streetlightRepository,
-                                       StreetlightService streetlightService) {
-        return args -> {
+                                       StreetlightService streetlightService,
+                                       TransactionTemplate transactionTemplate) {
+        return args -> transactionTemplate.executeWithoutResult(status -> {
             if (streetlightRepository.count() > 0) {
                 return; // already seeded
             }
@@ -70,6 +72,6 @@ public class StreetlightDataInitializer {
                             type.distribution());
                 }
             }
-        };
+        });
     }
 }

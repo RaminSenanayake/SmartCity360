@@ -10,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -43,8 +44,9 @@ public class ComplaintDataInitializer {
     CommandLineRunner seedComplaints(ResidentRepository residentRepository,
                                      ComplaintRepository complaintRepository,
                                      LocalStaffRepository localStaffRepository,
-                                     ComplaintHandlingService complaintHandlingService) {
-        return args -> {
+                                     ComplaintHandlingService complaintHandlingService,
+                                     TransactionTemplate transactionTemplate) {
+        return args -> transactionTemplate.executeWithoutResult(status -> {
             if (complaintRepository.count() > 0) {
                 return;
             }
@@ -64,6 +66,6 @@ public class ComplaintDataInitializer {
                 complaintHandlingService.handleComplaint(
                         resident.getId(), sample.text(), sample.severity());
             }
-        };
+        });
     }
 }

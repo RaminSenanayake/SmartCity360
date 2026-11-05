@@ -1,81 +1,63 @@
 package lk.urbantechsolutions.smartcity360.config;
 
 import lk.urbantechsolutions.smartcity360.model.role.CityManager;
-import lk.urbantechsolutions.smartcity360.model.role.LocalStaff;
 import lk.urbantechsolutions.smartcity360.model.role.Supervisor;
-import lk.urbantechsolutions.smartcity360.repository.CityManagerRepository;
-import lk.urbantechsolutions.smartcity360.repository.LocalStaffRepository;
-import lk.urbantechsolutions.smartcity360.repository.SupervisorRepository;
+import lk.urbantechsolutions.smartcity360.service.CityManagerService;
+import lk.urbantechsolutions.smartcity360.service.LocalStaffService;
+import lk.urbantechsolutions.smartcity360.service.SupervisorService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Configuration
 public class StaffDataInitializer {
     @Bean
     @Order(1)
-    CommandLineRunner seedStaff(CityManagerRepository cityManagerRepository,
-                                SupervisorRepository supervisorRepository,
-                                LocalStaffRepository localStaffRepository) {
-        return args -> {
-            if (cityManagerRepository.count() > 0) {
+    CommandLineRunner seedStaff(CityManagerService cityManagerService,
+                                SupervisorService supervisorService,
+                                LocalStaffService localStaffService,
+                                TransactionTemplate transactionTemplate) {
+        return args -> transactionTemplate.executeWithoutResult(status -> {
+            if (!cityManagerService.getAll().isEmpty()) {
                 return;
             }
 
             // City managers
-            CityManager manager1 = createManager(cityManagerRepository, "Nimal Perera");
-            CityManager manager2 = createManager(cityManagerRepository, "Chandani Gunawardena");
-            CityManager manager3 = createManager(cityManagerRepository, "Roshan Abeysekera");
-            CityManager manager4 = createManager(cityManagerRepository, "Priyanka Wijesinghe");
+            CityManager manager1 = cityManagerService.add("Nimal Perera");
+            CityManager manager2 = cityManagerService.add("Chandani Gunawardena");
+            CityManager manager3 = cityManagerService.add("Roshan Abeysekera");
+            CityManager manager4 = cityManagerService.add("Priyanka Wijesinghe");
 
             // Supervisors, two per manager
-            Supervisor sup1 = createSupervisor(supervisorRepository, "Kamal Silva", manager1);
-            Supervisor sup2 = createSupervisor(supervisorRepository, "Sunil Fernando", manager1);
-            Supervisor sup3 = createSupervisor(supervisorRepository, "Malini De Alwis", manager2);
-            Supervisor sup4 = createSupervisor(supervisorRepository, "Tharindu Bandara", manager2);
-            Supervisor sup5 = createSupervisor(supervisorRepository, "Nadeesha Karunaratne", manager3);
-            Supervisor sup6 = createSupervisor(supervisorRepository, "Lasantha Herath", manager3);
-            Supervisor sup7 = createSupervisor(supervisorRepository, "Shanika Dissanayake", manager4);
-            Supervisor sup8 = createSupervisor(supervisorRepository, "Buddhika Senanayake", manager4);
+            Supervisor sup1 = supervisorService.add("Kamal Silva", manager1.getId());
+            Supervisor sup2 = supervisorService.add("Sunil Fernando", manager1.getId());
+            Supervisor sup3 = supervisorService.add("Malini De Alwis", manager2.getId());
+            Supervisor sup4 = supervisorService.add("Tharindu Bandara", manager2.getId());
+            Supervisor sup5 = supervisorService.add("Nadeesha Karunaratne", manager3.getId());
+            Supervisor sup6 = supervisorService.add("Lasantha Herath", manager3.getId());
+            Supervisor sup7 = supervisorService.add("Shanika Dissanayake", manager4.getId());
+            Supervisor sup8 = supervisorService.add("Buddhika Senanayake", manager4.getId());
 
             // Local staff, two per supervisor
-            createLocalStaff(localStaffRepository, "Ayesha Jayasuriya", sup1);
-            createLocalStaff(localStaffRepository, "Ruwan Wickramasinghe", sup1);
-            createLocalStaff(localStaffRepository, "Dilini Rajapaksa", sup2);
-            createLocalStaff(localStaffRepository, "Pasan Liyanage", sup2);
-            createLocalStaff(localStaffRepository, "Ishara Gamage", sup3);
-            createLocalStaff(localStaffRepository, "Nuwan Ekanayake", sup3);
-            createLocalStaff(localStaffRepository, "Hiruni Amarasinghe", sup4);
-            createLocalStaff(localStaffRepository, "Chamara Jayawardena", sup4);
-            createLocalStaff(localStaffRepository, "Sachini Weerasinghe", sup5);
-            createLocalStaff(localStaffRepository, "Dinesh Rathnayake", sup5);
-            createLocalStaff(localStaffRepository, "Thilini Samarasinghe", sup6);
-            createLocalStaff(localStaffRepository, "Kasun Madushanka", sup6);
-            createLocalStaff(localStaffRepository, "Anushka Peiris", sup7);
-            createLocalStaff(localStaffRepository, "Mahesh Gunasekara", sup7);
-            createLocalStaff(localStaffRepository, "Sewwandi Cooray", sup8);
-            createLocalStaff(localStaffRepository, "Janaka Premadasa", sup8);
-        };
+            localStaffService.add("Ayesha Jayasuriya", sup1.getId());
+            localStaffService.add("Ruwan Wickramasinghe", sup1.getId());
+            localStaffService.add("Dilini Rajapaksa", sup2.getId());
+            localStaffService.add("Pasan Liyanage", sup2.getId());
+            localStaffService.add("Ishara Gamage", sup3.getId());
+            localStaffService.add("Nuwan Ekanayake", sup3.getId());
+            localStaffService.add("Hiruni Amarasinghe", sup4.getId());
+            localStaffService.add("Chamara Jayawardena", sup4.getId());
+            localStaffService.add("Sachini Weerasinghe", sup5.getId());
+            localStaffService.add("Dinesh Rathnayake", sup5.getId());
+            localStaffService.add("Thilini Samarasinghe", sup6.getId());
+            localStaffService.add("Kasun Madushanka", sup6.getId());
+            localStaffService.add("Anushka Peiris", sup7.getId());
+            localStaffService.add("Mahesh Gunasekara", sup7.getId());
+            localStaffService.add("Sewwandi Cooray", sup8.getId());
+            localStaffService.add("Janaka Premadasa", sup8.getId());
+        });
     }
 
-    private CityManager createManager(CityManagerRepository repo, String name) {
-        CityManager manager = new CityManager();
-        manager.setName(name);
-        return repo.save(manager);
-    }
-
-    private Supervisor createSupervisor(SupervisorRepository repo, String name, CityManager manager) {
-        Supervisor supervisor = new Supervisor();
-        supervisor.setName(name);
-        supervisor.setCityManager(manager);
-        return repo.save(supervisor);
-    }
-
-    private LocalStaff createLocalStaff(LocalStaffRepository repo, String name, Supervisor supervisor) {
-        LocalStaff staff = new LocalStaff();
-        staff.setName(name);
-        staff.setSupervisor(supervisor);
-        return repo.save(staff);
-    }
 }

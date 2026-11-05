@@ -5,10 +5,15 @@ import lk.urbantechsolutions.smartcity360.model.zone.City;
 import lk.urbantechsolutions.smartcity360.model.zone.District;
 import lk.urbantechsolutions.smartcity360.model.zone.Street;
 import lk.urbantechsolutions.smartcity360.repository.CityRepository;
+import lk.urbantechsolutions.smartcity360.service.CityService;
+import lk.urbantechsolutions.smartcity360.service.DistrictService;
+import lk.urbantechsolutions.smartcity360.service.StreetService;
+import lk.urbantechsolutions.smartcity360.service.BuildingService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,13 +23,16 @@ public class ZoneDataInitializer {
 
     @Order(0)
     @Bean
-    CommandLineRunner seedDatabase(CityRepository cityRepository) {
-        return args -> {
+    CommandLineRunner seedDatabase(CityRepository cityRepository,
+                                   CityService cityService, DistrictService districtService,
+                                   StreetService streetService, BuildingService buildingService,
+                                   TransactionTemplate transactionTemplate) {
+        return args -> transactionTemplate.executeWithoutResult(status -> {
             if (cityRepository.count() > 0) {
                 return; // already seeded (matters when ddl-auto=update)
             }
 
-            List<City> cities = List.of(
+            List<CitySeed> cities = List.of(
                     city("Colombo",
                             district("Fort",
                                     street("York Street",
@@ -106,45 +114,43 @@ public class ZoneDataInitializer {
                                             building("Garment Factory 2", "645.10", false))))
             );
 
-            cityRepository.saveAll(cities); // cascades to districts, streets, buildings
-
-            cities.forEach(c -> System.out.println("Seeded " + c.getName()
-                    + " | usage: " + c.getPowerUsage()
-                    + " | power on: " + c.isPowerOn()));
-        };
+            for (CitySeed citySeed : cities) {
+                City city = cityService.add(citySeed.name());
+                for (DistrictSeed districtSeed : citySeed.districts()) {
+                    District district = districtService.add(city.getId(), districtSeed.name());
+                    for (StreetSeed streetSeed : districtSeed.streets()) {
+                        Street street = streetService.add(district.getId(), streetSeed.name());
+                        for (BuildingSeed buildingSeed : streetSeed.buildings()) {
+                            Building building = buildingService.add(street.getId(), buildingSeed.name(),
+                                    buildingSeed.usage());
+                            if (buildingSeed.powerOn()) {
+                                building.turnOnPower();
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 
-    // ---------- helpers ----------
+    private record CitySeed(String name, List<DistrictSeed> districts) {}
+    private record DistrictSeed(String name, List<StreetSeed> streets) {}
+    private record StreetSeed(String name, List<BuildingSeed> buildings) {}
+    private record BuildingSeed(String name, BigDecimal usage, boolean powerOn) {}
 
-    private City city(String name, District... districts) {
-        City c = new City(name);
-        for (District d : districts) {
-            c.addDistrict(d);
-        }
-        return c;
+    private CitySeed city(String name, DistrictSeed... districts) {
+        return new CitySeed(name, List.of(districts));
     }
 
-    private District district(String name, Street... streets) {
-        District d = new District(name);
-        for (Street s : streets) {
-            d.addStreet(s);
-        }
-        return d;
+    private DistrictSeed district(String name, StreetSeed... streets) {
+        return new DistrictSeed(name, List.of(streets));
     }
 
-    private Street street(String name, Building... buildings) {
-        Street s = new Street(name);
-        for (Building b : buildings) {
-            s.addBuilding(b);
-        }
-        return s;
+    private StreetSeed street(String name, BuildingSeed... buildings) {
+        return new StreetSeed(name, List.of(buildings));
     }
 
-    private Building building(String name, String usage, boolean powerOn) {
-        Building b = new Building(name, new BigDecimal(usage));
-        if (powerOn) {
-            b.turnOnPower();
-        }
-        return b;
+    private BuildingSeed building(String name, String usage, boolean powerOn) {
+        return new BuildingSeed(name, new BigDecimal(usage), powerOn);
     }
 }

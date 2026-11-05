@@ -1,8 +1,13 @@
 package lk.urbantechsolutions.smartcity360.model.energymeter;
 
 import lk.urbantechsolutions.smartcity360.model.zone.Building;
-import lk.urbantechsolutions.smartcity360.service.BuildingService;
-import lk.urbantechsolutions.smartcity360.service.impl.EnergyMeterServiceImpl;
+import lk.urbantechsolutions.smartcity360.repository.*;
+import lk.urbantechsolutions.smartcity360.model.zone.ZoneType;
+import java.util.Optional;
+import lk.urbantechsolutions.smartcity360.service.StaffAuthenticationService;
+import lk.urbantechsolutions.smartcity360.model.role.StaffIdentity;
+import lk.urbantechsolutions.smartcity360.model.role.StaffType;
+import lk.urbantechsolutions.smartcity360.service.impl.PowerControlServiceImpl;
 import org.junit.jupiter.api.Test;
 
 import javax.crypto.AEADBadTagException;
@@ -20,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class EnergyMeterStreamTests {
+    private final StaffAuthenticationService authentication = mock(StaffAuthenticationService.class);
+    private final StaffIdentity staff = new StaffIdentity(StaffType.LOCAL_STAFF, 1L);
     private final SecretKeySpec key = new SecretKeySpec(new byte[32], "AES");
 
     @Test
@@ -45,7 +52,7 @@ class EnergyMeterStreamTests {
     void allDecoratorsComposeAndReadingCanBeRecovered() throws Exception {
         byte[] original = "meter reading".getBytes(StandardCharsets.UTF_8);
         EnergyMeterStream stream = new AuthenticationDecorator(
-                new EncryptionDecorator(new CompressionDecorator(() -> original), key), "secret", "secret");
+                new EncryptionDecorator(new CompressionDecorator(() -> original), key), authentication, staff, "secret");
         assertArrayEquals(original, decompress(decrypt(stream.readData())));
     }
 
@@ -65,48 +72,61 @@ class EnergyMeterStreamTests {
     @Test
     void invalidTokenNeverInvokesWrappedStream() {
         EnergyMeterStream source = mock(EnergyMeterStream.class);
-        for (String token : new String[]{null, "", "wrong"}) {
-            EnergyMeterStream stream = new AuthenticationDecorator(source, token, "secret");
-            assertThrows(SecurityException.class, stream::readData);
-        }
+        doThrow(new SecurityException("Invalid staff credentials"))
+                .when(authentication).authenticate(staff, "wrong");
+        EnergyMeterStream stream = new AuthenticationDecorator(source, authentication, staff, "wrong");
+        assertThrows(SecurityException.class, stream::readData);
         verifyNoInteractions(source);
-        assertThrows(IllegalStateException.class, () -> new AuthenticationDecorator(source, "", ""));
     }
 
     @Test
     void serviceReadsBuildingWithEveryOptionalLayerCombination() throws Exception {
-        BuildingService buildings = mock(BuildingService.class);
-        when(buildings.get(7L)).thenReturn(new Building("Office", new BigDecimal("123.45")));
-        EnergyMeterServiceImpl service = new EnergyMeterServiceImpl(buildings, "secret",
+        BuildingRepository buildings = mock(BuildingRepository.class);
+        when(buildings.findById(7L)).thenReturn(Optional.of(new Building("Office", new BigDecimal("123.45"))));
+        PowerControlServiceImpl service = new PowerControlServiceImpl(mock(CityRepository.class), mock(DistrictRepository.class),
+                mock(StreetRepository.class), buildings, authentication,
                 Base64.getEncoder().encodeToString(key.getEncoded()));
         for (boolean compress : new boolean[]{false, true}) {
             for (boolean encrypt : new boolean[]{false, true}) {
-                byte[] data = service.readData(7L, "secret", compress, encrypt);
+                byte[] data = service.getUsage(7L, ZoneType.BUILDING, staff, "secret", compress, encrypt);
                 if (encrypt) data = decrypt(data);
                 if (compress) data = decompress(data);
                 assertTrue(new String(data, StandardCharsets.UTF_8).contains("\"powerUsage\":123.45"));
             }
         }
-        verify(buildings, times(4)).get(7L);
+        var order = inOrder(authentication, buildings);
+        for (int i = 0; i < 4; i++) {
+            order.verify(authentication).authenticate(staff, "secret");
+            order.verify(buildings).findById(7L);
+        }
     }
 
     @Test
     void serviceRejectsUnauthenticatedReadsBeforeBuildingLookup() {
-        BuildingService buildings = mock(BuildingService.class);
-        EnergyMeterServiceImpl service = new EnergyMeterServiceImpl(buildings, "secret", "");
-        assertThrows(SecurityException.class, () -> service.readData(7L, "wrong", false, false));
+        BuildingRepository buildings = mock(BuildingRepository.class);
+        PowerControlServiceImpl service = new PowerControlServiceImpl(mock(CityRepository.class), mock(DistrictRepository.class),
+                mock(StreetRepository.class), buildings, authentication, "");
+        doThrow(new SecurityException("Invalid staff credentials"))
+                .when(authentication).authenticate(staff, "wrong");
+        for (boolean compress : new boolean[]{false, true}) {
+            for (boolean encrypt : new boolean[]{false, true}) {
+                assertThrows(SecurityException.class,
+                        () -> service.getUsage(7L, ZoneType.BUILDING, staff, "wrong", compress, encrypt));
+            }
+        }
         verifyNoInteractions(buildings);
     }
 
     @Test
-    void serviceRequiresConfiguredSecrets() {
-        BuildingService buildings = mock(BuildingService.class);
-        EnergyMeterServiceImpl unconfigured = new EnergyMeterServiceImpl(buildings, "", "");
-        assertThrows(IllegalStateException.class, () -> unconfigured.readData(7L, "", false, false));
-        EnergyMeterServiceImpl missingKey = new EnergyMeterServiceImpl(buildings, "secret", "");
-        assertThrows(IllegalStateException.class, () -> missingKey.readData(7L, "secret", false, true));
-        EnergyMeterServiceImpl shortKey = new EnergyMeterServiceImpl(buildings, "secret", "YQ==");
-        assertThrows(IllegalArgumentException.class, () -> shortKey.readData(7L, "secret", false, true));
+    void serviceRequiresConfiguredEncryptionKeyAfterAuthentication() {
+        BuildingRepository buildings = mock(BuildingRepository.class);
+        PowerControlServiceImpl missingKey = new PowerControlServiceImpl(mock(CityRepository.class), mock(DistrictRepository.class),
+                mock(StreetRepository.class), buildings, authentication, "");
+        assertThrows(IllegalStateException.class, () -> missingKey.getUsage(7L, ZoneType.BUILDING, staff, "secret", false, true));
+        PowerControlServiceImpl shortKey = new PowerControlServiceImpl(mock(CityRepository.class), mock(DistrictRepository.class),
+                mock(StreetRepository.class), buildings, authentication, "YQ==");
+        assertThrows(IllegalArgumentException.class, () -> shortKey.getUsage(7L, ZoneType.BUILDING, staff, "secret", false, true));
+        verify(authentication, times(2)).authenticate(staff, "secret");
         verifyNoInteractions(buildings);
     }
 

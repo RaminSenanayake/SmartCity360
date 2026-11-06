@@ -1,7 +1,7 @@
 package lk.urbantechsolutions.smartcity360.config;
 
-import lk.urbantechsolutions.smartcity360.service.ResidentService;
 import lk.urbantechsolutions.smartcity360.repository.ResidentRepository;
+import lk.urbantechsolutions.smartcity360.service.ResidentService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

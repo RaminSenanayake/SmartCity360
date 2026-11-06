@@ -1,23 +1,23 @@
 package lk.urbantechsolutions.smartcity360.service.impl;
 
-import lk.urbantechsolutions.smartcity360.model.zone.ZoneType;
 import lk.urbantechsolutions.smartcity360.model.energymeter.*;
 import lk.urbantechsolutions.smartcity360.model.role.StaffIdentity;
-import lk.urbantechsolutions.smartcity360.service.StaffAuthenticationService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.transaction.annotation.Transactional;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import lk.urbantechsolutions.smartcity360.model.zone.ZoneType;
 import lk.urbantechsolutions.smartcity360.repository.BuildingRepository;
 import lk.urbantechsolutions.smartcity360.repository.CityRepository;
 import lk.urbantechsolutions.smartcity360.repository.DistrictRepository;
 import lk.urbantechsolutions.smartcity360.repository.StreetRepository;
 import lk.urbantechsolutions.smartcity360.service.PowerControlService;
+import lk.urbantechsolutions.smartcity360.service.StaffAuthenticationService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Service
 public class PowerControlServiceImpl implements PowerControlService {
@@ -88,9 +88,11 @@ public class PowerControlServiceImpl implements PowerControlService {
             case CITY -> cityRepository.findById(zoneId).orElseThrow().getPowerUsage();
             case DISTRICT -> districtRepository.findById(zoneId).orElseThrow().getPowerUsage();
             case STREET -> streetRepository.findById(zoneId).orElseThrow().getPowerUsage();
-            case BUILDING -> throw new SecurityException("Building usage requires authenticated staff; use the credentialed getUsage overload");
+            case BUILDING ->
+                    throw new SecurityException("Building usage requires authenticated staff; use the credentialed getUsage overload");
         };
     }
+
     @Override
     @Transactional(readOnly = true)
     public byte[] getUsage(Long zoneId, ZoneType zoneType, StaffIdentity staff, String token,

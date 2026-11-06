@@ -5,7 +5,9 @@ import lk.urbantechsolutions.smartcity360.service.StaffAuthenticationService;
 
 import java.util.Objects;
 
-/** Authenticates the staff account before invoking the wrapped stream on every read. */
+/**
+ * Authenticates the staff account before invoking the wrapped stream on every read.
+ */
 public class AuthenticationDecorator extends EnergyMeterStreamDecorator {
     private final StaffAuthenticationService authenticationService;
     private final StaffIdentity identity;

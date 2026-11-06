@@ -23,21 +23,27 @@ public class LocalStaffServiceImpl implements LocalStaffService {
         this.supervisorRepository = supervisorRepository;
     }
 
-    @Override @Transactional(readOnly = true)
-    public List<LocalStaff> getAll() { return repository.findAll(); }
+    @Override
+    @Transactional(readOnly = true)
+    public List<LocalStaff> getAll() {
+        return repository.findAll();
+    }
 
-    @Override @Transactional(readOnly = true)
+    @Override
+    @Transactional(readOnly = true)
     public List<LocalStaff> getBySupervisor(Long supervisorId) {
         return repository.findBySupervisor_Id(supervisorId);
     }
 
-    @Override @Transactional(readOnly = true)
+    @Override
+    @Transactional(readOnly = true)
     public LocalStaff get(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Local staff " + id + " not found"));
     }
 
-    @Override @Transactional
+    @Override
+    @Transactional
     public LocalStaff add(String name, Long supervisorId) {
         requireName(name);
         LocalStaff staff = new LocalStaff();
@@ -46,7 +52,8 @@ public class LocalStaffServiceImpl implements LocalStaffService {
         return repository.save(staff);
     }
 
-    @Override @Transactional
+    @Override
+    @Transactional
     public LocalStaff update(Long id, String name, Long supervisorId) {
         requireName(name);
         LocalStaff staff = get(id);
@@ -55,7 +62,8 @@ public class LocalStaffServiceImpl implements LocalStaffService {
         return staff;
     }
 
-    @Override @Transactional
+    @Override
+    @Transactional
     public void remove(Long id) {
         repository.delete(get(id));
     }

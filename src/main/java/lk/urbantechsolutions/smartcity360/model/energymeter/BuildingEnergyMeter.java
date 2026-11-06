@@ -6,7 +6,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Objects;
 
-/** Simulates a meter using the building's stored usage; no hardware is connected. */
+/**
+ * Simulates a meter using the building's stored usage; no hardware is connected.
+ */
 public class BuildingEnergyMeter implements EnergyMeterStream {
     private final Building building;
 

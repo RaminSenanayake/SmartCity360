@@ -8,7 +8,9 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Objects;
 
-/** Output layout: 12-byte random nonce followed by AES-GCM ciphertext and its 16-byte tag. */
+/**
+ * Output layout: 12-byte random nonce followed by AES-GCM ciphertext and its 16-byte tag.
+ */
 public class EncryptionDecorator extends EnergyMeterStreamDecorator {
     private static final SecureRandom RANDOM = new SecureRandom();
     private final SecretKey key;

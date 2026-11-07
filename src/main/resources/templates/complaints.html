@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Complaints &middot; SmartCity360</title>
+    <link rel="stylesheet" th:href="@{/css/portal.css}" />
+    <script defer th:src="@{/js/portal.js}"></script>
+    <script defer th:src="@{/js/interactions.js}"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <aside th:replace="~{fragments/layout :: sidebar('complaints')}"></aside>
+    <div class="app-shell">
+      <header th:replace="~{fragments/layout :: topbar('Complaints')}"></header>
+      <main id="main" class="main-content">
+        <div class="page-heading">
+          <div>
+            <div class="section-kicker">COMMUNITY SERVICES</div>
+            <h1
+              th:text="${portalUser.staff ? 'Citizen complaints' : 'Let us make things better.'}"
+            ></h1>
+            <p
+              class="muted"
+              th:text="${portalUser.staff ? 'Review issues and follow how they reach the right people.' : 'Report an issue and follow its journey to the right team.'}"
+            ></p>
+          </div>
+          <span
+            class="badge neutral"
+            data-refresh-region="complaint-count"
+            th:text="${#lists.size(complaints) + ' complaints'}"
+          ></span>
+        </div>
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <section th:unless="${portalUser.staff}" class="panel form-panel">
+          <div class="section-kicker">HAVE SOMETHING TO REPORT?</div>
+          <h2>Tell us what is happening</h2>
+          <form
+            th:action="@{/resident/complaints}"
+            method="post"
+            data-async-form
+            data-update-regions="complaint-list,complaint-count"
+            data-reset-on-success
+            data-draft-guard
+          >
+            <label for="complaint-text">Describe the issue</label
+            ><textarea
+              id="complaint-text"
+              name="text"
+              maxlength="255"
+              rows="3"
+              placeholder="For example, a streetlight on Main Street has stopped working..."
+              required
+            ></textarea>
+            <div class="form-bottom">
+              <span
+                class="field-hint character-count"
+                data-character-count="complaint-text"
+                aria-live="off"
+                >0 / 255</span
+              >
+              <button class="button primary">Submit complaint &rarr;</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2
+                th:text="${portalUser.staff ? 'All complaints' : 'Your complaints'}"
+              ></h2>
+              <p class="muted" th:if="${portalUser.staff}">
+                Staff assess each new complaint before routing it according to
+                severity.
+              </p>
+              <p class="muted" th:unless="${portalUser.staff}">
+                Track updates to your reported issues.
+              </p>
+            </div>
+          </div>
+          <div class="list-toolbar" data-filter-toolbar="complaints" hidden>
+            <label class="search-field" for="complaint-search"
+              ><span class="sr-only">Search complaints</span>
+              <input
+                id="complaint-search"
+                type="search"
+                placeholder="Search reference, issue or person..."
+                data-list-search="complaints"
+                autocomplete="off"
+              />
+            </label>
+            <label class="sr-only" for="complaint-status"
+              >Filter complaint status</label
+            >
+            <select id="complaint-status" data-list-status="complaints">
+              <option value="all">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="handled">Handled</option>
+            </select>
+            <button
+              type="button"
+              class="text-button"
+              data-clear-filters="complaints"
+            >
+              Clear filters
+            </button>
+            <span
+              class="filter-count"
+              data-filter-count="complaints"
+              role="status"
+            ></span>
+          </div>
+          <div
+            data-refresh-region="complaint-list"
+            data-filter-container="complaints"
+          >
+            <div class="empty-state" th:if="${#lists.isEmpty(complaints)}">
+              <strong>No complaints yet.</strong>
+              <p>Submitted issues will appear here.</p>
+            </div>
+            <div class="complaint-list">
+              <article
+                class="complaint-item"
+                th:each="item : ${complaints}"
+                data-filter-item
+                th:attr="data-item-id=${item.id},data-status=${item.handled ? 'handled' : 'pending'}"
+              >
+                <div class="complaint-top">
+                  <span class="table-id" th:text="${'SC-' + item.id}"></span
+                  ><span
+                    class="severity"
+                    th:if="${portalUser.staff or item.severity != null}"
+                    th:classappend="${item.severity != null ? #strings.toLowerCase(item.severity.name()) : 'unassessed'}"
+                    th:text="${item.severity != null ? item.severity : 'Not assessed'}"
+                  ></span
+                  ><span
+                    class="badge"
+                    th:classappend="${item.handled ? 'positive' : 'neutral'}"
+                    th:text="${item.handled ? 'Handled' : (portalUser.staff and item.severity == null ? 'Awaiting assessment' : 'Pending')}"
+                  ></span
+                  ><time
+                    th:text="${#temporals.format(item.createdAt,'dd MMM yyyy, HH:mm')}"
+                  ></time>
+                </div>
+                <h3 th:text="${item.complaint}"></h3>
+                <p th:if="${portalUser.staff}" class="muted">
+                  Reported by <span th:text="${item.resident.name}"></span>
+                </p>
+                <p
+                  th:if="${portalUser.staff and item.assessedByName != null}"
+                  class="handled-note"
+                >
+                  Severity assessed by
+                  <strong th:text="${item.assessedByName}"></strong> &middot;
+                  <span th:text="${item.assessedByRole}"></span>
+                </p>
+                <form
+                  th:if="${portalUser.complaintReviewer}"
+                  th:action="@{/staff/complaints/{id}/severity(id=${item.id})}"
+                  method="post"
+                  class="severity-assessment"
+                  data-async-form
+                  data-update-regions="complaint-list,complaint-count"
+                >
+                  <label th:for="${'severity-' + item.id}"
+                    >Complaint severity</label
+                  >
+                  <div class="assessment-controls">
+                    <select
+                      name="severity"
+                      th:id="${'severity-' + item.id}"
+                      required
+                    >
+                      <option value="">Select severity</option>
+                      <option
+                        th:each="severity : ${severities}"
+                        th:value="${severity}"
+                        th:text="${severity}"
+                        th:selected="${severity == item.severity}"
+                      ></option>
+                    </select>
+                    <button
+                      class="button primary"
+                      th:text="${item.severity == null ? 'Set severity and route' : 'Update severity and route'}"
+                    ></button>
+                  </div>
+                </form>
+                <div class="escalation-path">
+                  <span>Routing history</span>
+                  <p
+                    th:text="${item.escalationPath != null ? item.escalationPath : (portalUser.staff ? 'Awaiting staff assessment' : 'Submitted')}"
+                  ></p>
+                </div>
+                <p th:if="${item.handled}" class="handled-note">
+                  Handled by
+                  <strong th:text="${item.handledByName}"></strong> &middot;
+                  <span th:text="${item.handledByRole}"></span>
+                </p>
+              </article>
+            </div>
+          </div>
+          <div
+            class="empty-state filter-empty"
+            data-filter-empty="complaints"
+            hidden
+          >
+            <strong>No matching complaints.</strong>
+            <p>Try a different search or clear your filters.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

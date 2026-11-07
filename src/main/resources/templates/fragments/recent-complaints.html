@@ -1,0 +1,57 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <section th:fragment="panel" class="panel recent-panel">
+      <div class="panel-heading">
+        <div>
+          <div class="section-kicker">COMMUNITY SERVICES</div>
+          <h2
+            th:text="${portalUser.staff ? 'Recent citizen complaints' : 'Your recent complaints'}"
+          ></h2>
+        </div>
+        <a class="text-link" th:href="@{/complaints}"
+          >View all complaints &rarr;</a
+        >
+      </div>
+      <div class="empty-state" th:if="${#lists.isEmpty(recentComplaints)}">
+        <strong>A fresh start.</strong>
+        <p>
+          No complaints to display. You can report an issue from the complaints
+          page.
+        </p>
+      </div>
+      <div class="table-scroll" th:unless="${#lists.isEmpty(recentComplaints)}">
+        <table>
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Issue</th>
+              <th>Severity</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="item : ${recentComplaints}">
+              <td class="table-id" th:text="${'SC-' + item.id}"></td>
+              <td th:text="${item.complaint}"></td>
+              <td>
+                <span
+                  class="severity"
+                  th:classappend="${item.severity != null ? #strings.toLowerCase(item.severity.name()) : 'unassessed'}"
+                  th:text="${item.severity != null ? item.severity : (portalUser.staff ? 'Not assessed' : 'Pending')}"
+                ></span>
+              </td>
+              <td>
+                <span
+                  class="badge"
+                  th:classappend="${item.handled ? 'positive' : 'neutral'}"
+                  th:text="${item.handled ? 'Handled' : (portalUser.staff and item.severity == null ? 'Awaiting assessment' : 'Pending')}"
+                ></span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </body>
+</html>

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "complaints")
@@ -18,6 +19,11 @@ public class Complaint {
     private String complaint;
     @Enumerated(EnumType.STRING)
     private ComplaintSeverity severity;
+
+    private String assessedByName;
+    private String assessedByRole;
+    private Long assessedByStaffId;
+    private LocalDateTime assessedAt;
 
     private boolean handled;
     private String handledByRole;
@@ -103,15 +109,31 @@ public class Complaint {
             if (this.resident == null) {
                 throw new IllegalStateException("Resident is not selected");
             }
-            if (this.complaint == null || this.complaint.isEmpty()) {
+            if (this.complaint == null || this.complaint.isBlank()) {
                 throw new IllegalStateException("Complaint is empty");
-            }
-            if (this.severity == null) {
-                throw new IllegalStateException("Proper complaint severity is not selected");
             }
             return new Complaint(this);
         }
     }
+
+    /** Set by trusted staff assessment code; discard any previous routing outcome before re-evaluation. */
+    public void assess(ComplaintSeverity severity, String reviewerName, String reviewerRole, Long reviewerId) {
+        this.severity = Objects.requireNonNull(severity, "Severity is required");
+        this.assessedByName = reviewerName;
+        this.assessedByRole = reviewerRole;
+        this.assessedByStaffId = reviewerId;
+        this.assessedAt = LocalDateTime.now();
+        this.handled = false;
+        this.handledByName = null;
+        this.handledByRole = null;
+        this.handledByStaffId = null;
+        this.escalationPath = null;
+    }
+
+    public String getAssessedByName() { return assessedByName; }
+    public String getAssessedByRole() { return assessedByRole; }
+    public Long getAssessedByStaffId() { return assessedByStaffId; }
+    public LocalDateTime getAssessedAt() { return assessedAt; }
 
     public void markHandled(String role, Long staffId, String staffName) {
         this.handled = true;

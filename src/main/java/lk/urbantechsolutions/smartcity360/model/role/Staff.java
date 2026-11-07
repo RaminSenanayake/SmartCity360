@@ -66,6 +66,9 @@ public abstract class Staff {
     }
 
     public final Complaint handleComplaint(Complaint complaint) {
+        if (complaint.getSeverity() == null) {
+            throw new IllegalStateException("A complaint must be assessed before routing");
+        }
         return handle(complaint, new ArrayList<>());
     }
 

@@ -3,6 +3,9 @@ package lk.urbantechsolutions.smartcity360.service.impl;
 import lk.urbantechsolutions.smartcity360.model.energymeter.*;
 import lk.urbantechsolutions.smartcity360.model.role.StaffIdentity;
 import lk.urbantechsolutions.smartcity360.model.zone.ZoneType;
+import lk.urbantechsolutions.smartcity360.model.zone.Zone;
+import lk.urbantechsolutions.smartcity360.security.CityManagerAccess;
+import jakarta.persistence.EntityNotFoundException;
 import lk.urbantechsolutions.smartcity360.repository.BuildingRepository;
 import lk.urbantechsolutions.smartcity360.repository.CityRepository;
 import lk.urbantechsolutions.smartcity360.repository.DistrictRepository;
@@ -46,39 +49,33 @@ public class PowerControlServiceImpl implements PowerControlService {
     }
 
     @Override
+    @Transactional
     public void turnOnPower(Long zoneId, ZoneType zoneType) {
-        switch (zoneType) {
-            case CITY:
-                cityRepository.findById(zoneId).orElseThrow().turnOnPower();
-                break;
-            case DISTRICT:
-                districtRepository.findById(zoneId).orElseThrow().turnOnPower();
-                break;
-            case STREET:
-                streetRepository.findById(zoneId).orElseThrow().turnOnPower();
-                break;
-            case BUILDING:
-                buildingRepository.findById(zoneId).orElseThrow().turnOnPower();
-                break;
-        }
+        CityManagerAccess.require(authenticationService);
+        findZone(zoneId, zoneType).turnOnPower();
     }
 
     @Override
+    @Transactional
     public void turnOffPower(Long zoneId, ZoneType zoneType) {
-        switch (zoneType) {
-            case CITY:
-                cityRepository.findById(zoneId).orElseThrow().shutDownPower();
-                break;
-            case DISTRICT:
-                districtRepository.findById(zoneId).orElseThrow().shutDownPower();
-                break;
-            case STREET:
-                streetRepository.findById(zoneId).orElseThrow().shutDownPower();
-                break;
-            case BUILDING:
-                buildingRepository.findById(zoneId).orElseThrow().shutDownPower();
-                break;
+        CityManagerAccess.require(authenticationService);
+        findZone(zoneId, zoneType).shutDownPower();
+    }
+
+    private Zone findZone(Long zoneId, ZoneType zoneType) {
+        if (zoneId == null || zoneId <= 0 || zoneType == null) {
+            throw new IllegalArgumentException("A valid zone and zone type are required");
         }
+        return switch (zoneType) {
+            case CITY -> cityRepository.findById(zoneId).orElseThrow(() -> missingZone(zoneId, zoneType));
+            case DISTRICT -> districtRepository.findById(zoneId).orElseThrow(() -> missingZone(zoneId, zoneType));
+            case STREET -> streetRepository.findById(zoneId).orElseThrow(() -> missingZone(zoneId, zoneType));
+            case BUILDING -> buildingRepository.findById(zoneId).orElseThrow(() -> missingZone(zoneId, zoneType));
+        };
+    }
+
+    private EntityNotFoundException missingZone(Long id, ZoneType type) {
+        return new EntityNotFoundException(type + " " + id + " not found");
     }
 
     @Override

@@ -23,7 +23,7 @@ public class Streetlight implements AbstractStreetlight {
     @Column(precision = 9, scale = 6)
     private BigDecimal latitude;
 
-    @Transient
+    @Column(nullable = false)
     private boolean powerOn;
 
     @ManyToOne(optional = false)

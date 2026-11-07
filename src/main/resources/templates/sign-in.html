@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sign in &middot; SmartCity360</title>
+    <link rel="stylesheet" th:href="@{/css/portal.css}" />
+    <script defer th:src="@{/js/portal.js}"></script>
+    <script defer th:src="@{/js/interactions.js}"></script>
+  </head>
+  <body class="login-page">
+    <main class="login-shell">
+      <section class="login-story">
+        <a class="brand" th:href="@{/}"
+          ><span class="brand-mark"
+            ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M2 21h20M4 21V11h6v10M10 21V3h7v18M17 21V8h4v13M12 7h3M12 11h3"
+              /></svg></span
+          ><span
+            >SmartCity<span class="brand-number">360</span
+            ><small>URBAN INTELLIGENCE</small></span
+          ></a
+        >
+        <div class="story-content">
+          <div class="eyebrow light">
+            <span class="online-dot"></span> CONNECTED BY POSSIBILITY
+          </div>
+          <h1>A smarter city.<br />A better everyday.</h1>
+          <p>
+            Understand the energy around you.<br />Connect with the services
+            that keep your city moving.
+          </p>
+          <div class="city-art" aria-hidden="true">
+            <svg viewBox="0 0 540 220">
+              <defs>
+                <pattern
+                  id="windows"
+                  width="14"
+                  height="18"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <rect
+                    x="4"
+                    y="5"
+                    width="4"
+                    height="7"
+                    fill="#80d7ce"
+                    opacity=".35"
+                  />
+                </pattern>
+              </defs>
+              <path d="M0 200H540M0 215H540" stroke="#44706a" />
+              <path
+                d="M20 200V130H65V200M80 200V70H140V200M155 200V110H195V200M210 200V25H280V200M295 200V80H345V200M360 200V115H405V200M420 200V55H475V200M490 200V140H525V200"
+                fill="url(#windows)"
+                stroke="#71aba2"
+                stroke-width="2"
+              />
+              <path
+                d="M245 25V6M230 25V16H260V25M430 55V42H465V55"
+                fill="none"
+                stroke="#71aba2"
+                stroke-width="2"
+              />
+              <circle cx="60" cy="50" r="25" fill="#d2eda5" opacity=".7" />
+              <path
+                d="M4 200V175m0 5q-15-20 0-30q15 10 0 30M515 200V180m0 0q-18-24 0-35q18 11 0 35"
+                stroke="#b5deba"
+                fill="none"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+          <div class="story-features">
+            <span>Energy visibility</span><span>Connected services</span
+            ><span>Clearer decisions</span>
+          </div>
+        </div>
+        <footer>
+          Built for the places we call home.<span>URBANTECH SOLUTIONS</span>
+        </footer>
+      </section>
+      <section class="login-form-panel">
+        <div class="login-form-wrap">
+          <span class="section-kicker">YOUR CITY, CONNECTED</span>
+          <h2>Welcome back</h2>
+          <p class="muted">Sign in to your SmartCity360 workspace.</p>
+          <div class="login-tabs" role="group" aria-label="Account type">
+            <input
+              class="sr-only"
+              type="radio"
+              id="resident-portal"
+              name="portal"
+              value="resident"
+              form="sign-in-form"
+              th:checked="${selectedPortal == 'resident'}"
+              required
+            />
+            <label for="resident-portal" data-login-type="resident"
+              >Resident</label
+            >
+            <input
+              class="sr-only"
+              type="radio"
+              id="staff-portal"
+              name="portal"
+              value="staff"
+              form="sign-in-form"
+              th:checked="${selectedPortal == 'staff'}"
+              required
+            />
+            <label for="staff-portal" data-login-type="staff"
+              >Staff member</label
+            >
+          </div>
+          <div class="alert error" th:if="${param.error}" role="alert">
+            We couldn&#8217;t sign you in. Check your username, password and
+            selected portal.
+          </div>
+          <div class="alert success" th:if="${param.logout}" role="status">
+            You have been signed out.
+          </div>
+          <form id="sign-in-form" th:action="@{/sign-in}" method="post">
+            <label for="username">Username</label
+            ><input
+              id="username"
+              name="username"
+              autocomplete="username"
+              th:placeholder="${selectedPortal == 'staff' ? 'e.g. local_staff.1' : 'e.g. resident.1'}"
+              required
+              autofocus
+            /><label for="password">Password</label>
+            <div class="password-field">
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Enter your password"
+                required
+              /><button
+                type="button"
+                data-password-toggle
+                aria-label="Show password"
+              >
+                Show
+              </button>
+            </div>
+            <button type="submit" class="button primary login-submit">
+              Sign in to your workspace <span aria-hidden="true">&rarr;</span>
+            </button>
+          </form>
+          <div class="login-help">
+            <span aria-hidden="true"
+              ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 11v6M12 7h.01" /></svg
+            ></span>
+            <p>
+              Choose the portal for your account and use the sign-in details
+              provided by your city administrator.
+            </p>
+          </div>
+          <p class="text-link">Need access? Contact your city administrator.</p>
+        </div>
+        <div class="login-bottom">
+          SmartCity360
+          <span>Connected communities. Thoughtful technology.</span>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

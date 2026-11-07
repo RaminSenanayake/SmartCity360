@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>City policies &middot; SmartCity360</title>
+    <link rel="stylesheet" th:href="@{/css/portal.css}" />
+    <script defer th:src="@{/js/portal.js}"></script>
+    <script defer th:src="@{/js/interactions.js}"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <aside th:replace="~{fragments/layout :: sidebar('policies')}"></aside>
+    <div class="app-shell">
+      <header
+        th:replace="~{fragments/layout :: topbar('City policies')}"
+      ></header>
+      <main id="main" class="main-content">
+        <div class="page-heading">
+          <div>
+            <div class="section-kicker">A CITY THAT WORKS FOR EVERYONE</div>
+            <h1>Clear rules. Better places.</h1>
+            <p class="muted">Explore city noise and parking policies.</p>
+          </div>
+          <span
+            class="badge neutral"
+            data-refresh-region="policy-count"
+            th:text="${#lists.size(policies) + ' policies'}"
+          ></span>
+        </div>
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <div
+          class="list-toolbar policy-search"
+          data-filter-toolbar="policies"
+          hidden
+        >
+          <label class="search-field" for="policy-search"
+            ><span class="sr-only">Search city policies</span>
+            <input
+              id="policy-search"
+              type="search"
+              placeholder="Find a policy by name or rule..."
+              data-list-search="policies"
+              autocomplete="off"
+            />
+          </label>
+          <button
+            type="button"
+            class="text-button"
+            data-clear-filters="policies"
+          >
+            Clear search
+          </button>
+          <span
+            class="filter-count"
+            data-filter-count="policies"
+            role="status"
+          ></span>
+        </div>
+        <div
+          class="policy-grid"
+          th:classappend="${!portalUser.staff} ? 'resident-grid'"
+        >
+          <section>
+            <div
+              data-refresh-region="policy-list"
+              data-filter-container="policies"
+            >
+              <div
+                class="empty-state panel"
+                th:if="${#lists.isEmpty(policies)}"
+              >
+                <strong>No policies yet.</strong>
+                <p>City policies will appear here once added.</p>
+              </div>
+              <article
+                th:each="policy : ${policies}"
+                class="panel policy-card"
+                data-filter-item
+                th:attr="data-item-id=${'policy-' + policy.id}"
+              >
+                <div class="policy-card-title">
+                  <span class="policy-symbol" aria-hidden="true"
+                    ><svg
+                      class="ui-icon"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M6 2h9l4 4v16H6ZM14 2v5h5M9 11h7M9 15h7M9 19h4"
+                      /></svg
+                  ></span>
+                  <div>
+                    <span
+                      class="section-kicker"
+                      th:text="${'POLICY ' + policy.id}"
+                    ></span>
+                    <h2 th:text="${policy.name}"></h2>
+                  </div>
+                </div>
+                <code class="rule-block" th:text="${policy.rule}"></code>
+                <div th:if="${portalUser.staff}" class="policy-actions">
+                  <button
+                    type="button"
+                    class="text-button"
+                    data-edit-policy
+                    th:attr="data-id=${policy.id},data-name=${policy.name},data-rule=${policy.rule}"
+                  >
+                    Edit policy &nearr;
+                  </button>
+                  <form
+                    th:action="@{/staff/policies/{id}/delete(id=${policy.id})}"
+                    method="post"
+                    data-confirm="Delete this policy? This cannot be undone."
+                    data-async-form
+                    data-update-regions="policy-list,policy-count"
+                  >
+                    <button class="text-button danger">Delete</button>
+                  </form>
+                </div>
+              </article>
+            </div>
+            <div
+              class="empty-state panel filter-empty"
+              data-filter-empty="policies"
+              hidden
+            >
+              <strong>No matching policies.</strong>
+              <p>Try another name or part of a rule.</p>
+            </div>
+          </section>
+          <aside th:if="${portalUser.staff}">
+            <section class="panel form-panel">
+              <div class="section-kicker">POLICY WORKSPACE</div>
+              <h2
+                data-policy-heading
+                th:text="${draftId != null ? 'Edit policy' : 'Create a policy'}"
+              ></h2>
+              <form
+                th:action="@{/staff/policies}"
+                method="post"
+                data-policy-form
+                data-async-form
+                data-update-regions="policy-list,policy-count"
+                data-reset-on-success
+                data-draft-guard
+              >
+                <input type="hidden" name="id" th:value="${draftId}" /><label
+                  for="policy-name"
+                  >Policy name</label
+                ><input
+                  id="policy-name"
+                  name="name"
+                  th:value="${draftName}"
+                  maxlength="255"
+                  placeholder="e.g. Quiet residential streets"
+                  required
+                /><label for="policy-rule">Rule</label
+                ><textarea
+                  id="policy-rule"
+                  name="rule"
+                  th:text="${draftRule}"
+                  maxlength="4096"
+                  rows="3"
+                  placeholder="NOISE &lt;= 55"
+                  required
+                ></textarea>
+                <p class="field-hint">
+                  Use NOISE comparisons and PARKING BETWEEN times. Combine
+                  conditions with AND, OR or NOT.
+                </p>
+                <div class="form-actions">
+                  <button class="button primary">Save policy</button
+                  ><button type="button" class="button" data-policy-reset>
+                    New policy
+                  </button>
+                </div>
+              </form>
+            </section>
+            <section class="panel form-panel">
+              <div class="section-kicker">TRY A SCENARIO</div>
+              <h2>Check a policy</h2>
+              <p class="muted">
+                See whether a noise reading and time satisfy a rule.
+              </p>
+              <form
+                th:action="@{/staff/policies/preview}"
+                method="post"
+                data-async-form
+                data-update-regions="policy-preview"
+              >
+                <label for="preview-rule">Rule to evaluate</label
+                ><textarea
+                  id="preview-rule"
+                  name="rule"
+                  rows="3"
+                  maxlength="4096"
+                  th:text="${previewRule ?: 'NOISE &lt;= 55 AND PARKING BETWEEN 08:00 AND 18:00'}"
+                  required
+                ></textarea>
+                <div class="form-two">
+                  <label for="noise"
+                    >Noise level (dB)<input
+                      id="noise"
+                      name="noise"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      th:value="${previewNoise ?: 40}"
+                      required /></label
+                  ><label for="time"
+                    >Local city time<input
+                      id="time"
+                      name="time"
+                      type="time"
+                      th:value="${previewTime ?: '12:00'}"
+                      required
+                  /></label>
+                </div>
+                <button class="button primary">Evaluate rule &rarr;</button>
+              </form>
+              <div data-refresh-region="policy-preview">
+                <div
+                  th:if="${previewResult}"
+                  class="alert"
+                  th:classappend="${previewPass ? 'success' : 'warning'}"
+                  role="status"
+                  th:text="${previewResult}"
+                ></div>
+              </div>
+            </section>
+          </aside>
+        </div>
+        <p class="quiet-note">
+          Parking windows include their start time and exclude their end time.
+          Overnight windows span midnight. Sample policies demonstrate the
+          system.
+        </p>
+      </main>
+    </div>
+  </body>
+</html>

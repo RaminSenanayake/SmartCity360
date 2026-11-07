@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Overview &middot; SmartCity360</title>
+    <link rel="stylesheet" th:href="@{/css/portal.css}" />
+    <script defer th:src="@{/js/portal.js}"></script>
+    <script defer th:src="@{/js/interactions.js}"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <aside th:replace="~{fragments/layout :: sidebar('dashboard')}"></aside>
+    <div class="app-shell">
+      <header th:replace="~{fragments/layout :: topbar('Overview')}"></header>
+      <main id="main" class="main-content">
+        <div class="page-heading">
+          <div>
+            <div class="section-kicker">CITY AT A GLANCE</div>
+            <h1>Every connection counts<span class="title-dot">.</span></h1>
+            <p class="muted">
+              Welcome back, <span th:text="${portalUser.displayName}"></span>.
+              Here&#8217;s a clearer view of your city.
+            </p>
+          </div>
+          <form th:action="@{/dashboard}" method="get" class="city-filter">
+            <label for="cityId">Viewing</label
+            ><select id="cityId" name="cityId" data-auto-submit>
+              <option value="">All cities</option>
+              <option
+                th:each="city : ${cities}"
+                th:value="${city.id}"
+                th:text="${city.name}"
+                th:selected="${city.id == selectedCityId}"
+              ></option></select
+            ><noscript><button class="button">Apply</button></noscript>
+          </form>
+        </div>
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <th:block th:unless="${portalUser.staff}">
+          <section
+            th:replace="~{fragments/recent-complaints :: panel}"
+          ></section>
+        </th:block>
+        <section
+          class="metrics"
+          th:classappend="${!portalUser.staff} ? 'resident-metrics'"
+          aria-label="City summary"
+        >
+          <article class="metric-card highlight">
+            <div class="metric-label">
+              Total energy usage
+              <span class="metric-icon"
+                ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M13 2 4 14h7l-1 8L20 10h-7Z" /></svg
+              ></span>
+            </div>
+            <div
+              class="metric-value"
+              th:text="${#numbers.formatDecimal(summary.usage,1,'COMMA',2,'POINT')}"
+            ></div>
+            <div class="metric-caption">
+              <span class="status-dot"></span> Current combined reading
+            </div>
+            <div class="metric-watermark" aria-hidden="true">
+              <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M13 2 4 14h7l-1 8L20 10h-7Z" />
+              </svg>
+            </div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">
+              Connected cities
+              <span class="metric-icon"
+                ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M2 21h20M4 21V11h6v10M10 21V3h7v18M17 21V8h4v13M12 7h3M12 11h3"
+                  /></svg
+              ></span>
+            </div>
+            <div class="metric-value" th:text="${summary.cities}"></div>
+            <div class="metric-caption">
+              <span th:text="${summary.districts}"></span> districts in this
+              view
+            </div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">
+              Buildings
+              <span class="metric-icon"
+                ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M4 21V8h6v13M10 21V3h9v18M2 21h20M13 7h3M13 11h3M13 15h3"
+                  /></svg
+              ></span>
+            </div>
+            <div class="metric-value" th:text="${summary.buildings}"></div>
+            <div class="metric-caption">Across connected city zones</div>
+          </article>
+          <article class="metric-card" th:if="${portalUser.staff}">
+            <div class="metric-label">
+              Powered buildings
+              <span class="metric-icon"
+                ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M13 2 4 14h7l-1 8L20 10h-7Z" /></svg
+              ></span>
+            </div>
+            <div
+              class="metric-value"
+              th:text="${summary.poweredBuildings}"
+            ></div>
+            <div class="metric-caption">
+              <span class="status-dot"></span> Power is currently on
+            </div>
+          </article>
+        </section>
+        <div
+          class="dashboard-grid"
+          th:classappend="${!portalUser.staff} ? 'resident-grid'"
+          id="energy"
+        >
+          <section
+            class="panel chart-panel"
+            data-energy-chart
+            th:attr="data-city=${selectedCityId}"
+          >
+            <div class="panel-heading">
+              <div>
+                <div class="section-kicker">ENERGY INTELLIGENCE</div>
+                <h2>Where the energy goes</h2>
+                <p class="muted">
+                  Compare current readings across your city network.
+                </p>
+              </div>
+              <span class="badge neutral"
+                ><span class="status-dot"></span> Current snapshot</span
+              >
+            </div>
+            <div class="chart-toolbar">
+              <div class="segmented" role="group" aria-label="Chart type">
+                <button
+                  type="button"
+                  class="selected"
+                  data-chart-style="bar"
+                  aria-pressed="true"
+                >
+                  Bar chart</button
+                ><button
+                  type="button"
+                  data-chart-style="share"
+                  aria-pressed="false"
+                >
+                  Usage share
+                </button>
+              </div>
+              <label class="inline-label"
+                >Group by
+                <select data-chart-level aria-label="Group energy usage by">
+                  <option value="CITY">City</option>
+                  <option value="DISTRICT">District</option>
+                  <option value="STREET">Street</option>
+                  <option th:if="${portalUser.staff}" value="BUILDING">
+                    Building
+                  </option>
+                </select></label
+              >
+            </div>
+            <div class="chart-status" role="status" aria-live="polite">
+              Loading energy readings...
+            </div>
+            <div class="chart-canvas" hidden></div>
+            <div class="chart-inspector" hidden aria-live="polite">
+              <div>
+                <span class="section-kicker">SELECTED READING</span
+                ><strong data-reading-name></strong>
+                <span data-reading-value></span>
+              </div>
+              <button type="button" class="text-button" data-clear-reading>
+                Clear selection
+              </button>
+            </div>
+            <p class="chart-interaction-hint">
+              Hover or focus to inspect a reading. Click or press Enter to keep
+              it selected.
+            </p>
+            <div class="chart-footnote">
+              <span class="legend-swatch"></span> Stored usage units
+              <span class="chart-limit"></span
+              ><button type="button" class="text-button" data-chart-retry>
+                Refresh readings &#8635;
+              </button>
+            </div>
+            <details class="chart-data">
+              <summary>View exact readings</summary>
+              <div class="table-scroll">
+                <table>
+                  <caption class="sr-only">
+                    Energy usage by selected zone
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th>Zone</th>
+                      <th>Current usage</th>
+                    </tr>
+                  </thead>
+                  <tbody data-chart-table></tbody>
+                </table>
+              </div>
+            </details>
+          </section>
+          <aside class="panel network-panel" th:if="${portalUser.staff}">
+            <div class="section-kicker">INFRASTRUCTURE</div>
+            <h2>Building power status</h2>
+            <p class="muted">A simple view of your connected buildings.</p>
+            <div
+              class="status-ring"
+              th:style="'--portion:' + ${summary.buildings == 0 ? 0 : summary.poweredBuildings * 100.0 / summary.buildings} + '%'"
+              role="img"
+              th:attr="aria-label=${summary.poweredBuildings + ' of ' + summary.buildings + ' buildings powered on'}"
+            >
+              <div>
+                <strong
+                  th:text="${summary.buildings == 0 ? '0' : #numbers.formatDecimal(summary.poweredBuildings * 100.0 / summary.buildings,1,0)}"
+                ></strong
+                ><span>% powered on</span>
+              </div>
+            </div>
+            <div class="ring-legend">
+              <div>
+                <span class="legend-swatch"></span>Power on<strong
+                  th:text="${summary.poweredBuildings}"
+                ></strong>
+              </div>
+              <div>
+                <span class="legend-swatch gray"></span>Power off<strong
+                  th:text="${summary.buildings - summary.poweredBuildings}"
+                ></strong>
+              </div>
+            </div>
+            <div class="quiet-note">
+              Current state of buildings in your selected city view.
+            </div>
+          </aside>
+        </div>
+        <section
+          th:if="${portalUser.staff}"
+          class="panel meter-panel"
+          data-meter-panel
+        >
+          <div class="panel-heading">
+            <div>
+              <div class="section-kicker">BUILDING METERS</div>
+              <h2>A closer look at a single building</h2>
+              <p class="muted">
+                Read a building&#8217;s latest available energy data.
+              </p>
+            </div>
+            <span class="badge">Staff access</span>
+          </div>
+          <div class="meter-controls">
+            <label for="buildingId"
+              >Building<select id="buildingId">
+                <option value="">Select a building</option>
+                <option
+                  th:each="building : ${buildings}"
+                  th:value="${building.id}"
+                  th:text="${building.name + ' · ' + building.street}"
+                ></option></select></label
+            ><button type="button" class="button primary" data-read-meter>
+              Read meter <span>&rarr;</span>
+            </button>
+          </div>
+          <p class="meter-message muted" role="status" aria-live="polite">
+            Choose a building to see its usage and power state.
+          </p>
+          <div class="meter-result" hidden>
+            <div>
+              <span>Current usage</span><strong data-meter-usage></strong>
+            </div>
+            <div>
+              <span>Building power</span><strong data-meter-power></strong>
+            </div>
+            <div>
+              <span>Reading time</span><strong data-meter-time></strong>
+            </div>
+          </div>
+        </section>
+        <th:block th:if="${portalUser.staff}">
+          <section
+            th:replace="~{fragments/recent-complaints :: panel}"
+          ></section>
+        </th:block>
+        <footer class="page-footer">
+          <span>SmartCity360 &middot; UrbanTech Solutions</span
+          ><span>Current readings &middot; no historical samples recorded</span>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

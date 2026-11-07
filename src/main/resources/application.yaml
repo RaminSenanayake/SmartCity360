@@ -3,7 +3,7 @@ spring:
     name: SmartCity360
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
   datasource:
     url: jdbc:mysql://localhost:3306/smartcity360?createDatabaseIfNotExist=true
@@ -20,3 +20,11 @@ logging:
 
 energy-meter:
   encryption-key: ${ENERGY_METER_ENCRYPTION_KEY}
+
+server:
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        same-site: lax

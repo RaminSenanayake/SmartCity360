@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Something went wrong &middot; SmartCity360</title>
+    <link rel="stylesheet" th:href="@{/css/portal.css}" />
+  </head>
+  <body>
+    <main class="standalone-message panel">
+      <span class="section-kicker" th:text="${'REQUEST ' + status}"></span>
+      <h1>Let us get you back on track.</h1>
+      <p>
+        This request couldn&#8217;t be completed. Check your inputs or return to
+        your overview.
+      </p>
+      <a class="button primary" th:href="@{/dashboard}"
+        >Back to overview &rarr;</a
+      >
+    </main>
+  </body>
+</html>

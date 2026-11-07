@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Zone power &middot; SmartCity360</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}" />
+    <link rel="stylesheet" th:href="@{/css/portal.css}" />
+    <script defer th:src="@{/js/portal.js}"></script>
+    <script defer th:src="@{/js/interactions.js}"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <aside th:replace="~{fragments/layout :: sidebar('power')}"></aside>
+    <div class="app-shell">
+      <header th:replace="~{fragments/layout :: topbar('Zone power')}"></header>
+      <main id="main" class="main-content">
+        <div class="page-heading">
+          <div>
+            <div class="section-kicker">INFRASTRUCTURE CONTROL</div>
+            <h1>Power, where it matters.</h1>
+            <p class="muted">
+              Manage power across cities, districts, streets and individual
+              buildings.
+            </p>
+          </div>
+          <form th:action="@{/staff/power}" method="get" class="city-filter">
+            <label for="cityId">Viewing</label>
+            <select id="cityId" name="cityId" data-auto-submit>
+              <option value="">All cities</option>
+              <option
+                th:each="city : ${cities}"
+                th:value="${city.id}"
+                th:text="${city.name}"
+                th:selected="${city.id == selectedCityId}"
+              ></option></select
+            ><noscript><button class="button">Apply</button></noscript>
+          </form>
+        </div>
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <section
+          class="power-summary"
+          data-refresh-region="power-summary"
+          aria-label="Building power summary"
+        >
+          <article class="metric-card">
+            <div class="metric-label">Buildings in view</div>
+            <div class="metric-value" th:text="${summary.buildings}"></div>
+          </article>
+          <article class="metric-card highlight">
+            <div class="metric-label">Buildings powered on</div>
+            <div
+              class="metric-value"
+              th:text="${summary.poweredBuildings}"
+            ></div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">Buildings powered off</div>
+            <div
+              class="metric-value"
+              th:text="${summary.buildings - summary.poweredBuildings}"
+            ></div>
+          </article>
+        </section>
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <div class="section-kicker">ZONE NETWORK</div>
+              <h2>Choose a zone to control</h2>
+              <p class="muted">
+                A city, district or street action updates every building and
+                streetlight below it.
+              </p>
+            </div>
+            <span class="badge">City manager access</span>
+          </div>
+          <div class="list-toolbar" data-filter-toolbar="zones" hidden>
+            <label class="search-field" for="zone-search"
+              ><span class="sr-only">Search zones</span
+              ><input
+                id="zone-search"
+                type="search"
+                data-list-search="zones"
+                placeholder="Find a city, district, street or building..."
+            /></label>
+            <label class="sr-only" for="zone-level">Zone level</label>
+            <select id="zone-level" data-list-status="zones">
+              <option value="all">All levels</option>
+              <option value="CITY" selected>City</option>
+              <option value="DISTRICT">District</option>
+              <option value="STREET">Street</option>
+              <option value="BUILDING">Building</option>
+            </select>
+            <button
+              type="button"
+              class="text-button"
+              data-clear-filters="zones"
+            >
+              Clear filters</button
+            ><span
+              class="filter-count"
+              data-filter-count="zones"
+              role="status"
+            ></span>
+          </div>
+          <div data-refresh-region="zone-list" data-filter-container="zones">
+            <div class="empty-state" th:if="${#lists.isEmpty(zones)}">
+              <strong>No zones in this view.</strong>
+              <p>Add city infrastructure before controlling its power.</p>
+            </div>
+            <article
+              class="zone-power-row"
+              th:each="zone : ${zones}"
+              data-filter-item
+              th:attr="data-item-id=${'power-' + zone.type + '-' + zone.id},data-status=${zone.type}"
+            >
+              <div class="zone-description">
+                <span class="section-kicker" th:text="${zone.type}"></span>
+                <h3 th:text="${zone.name}"></h3>
+                <p class="muted" th:text="${zone.location}"></p>
+              </div>
+              <div class="zone-state">
+                <span
+                  class="badge"
+                  th:classappend="${zone.total > 0 and zone.on == zone.total ? 'positive' : 'neutral'}"
+                  th:text="${zone.state()}"
+                ></span>
+                <small
+                  th:text="${zone.on + ' of ' + zone.total + ' devices on'}"
+                ></small>
+              </div>
+              <div class="zone-actions">
+                <form
+                  th:action="@{/staff/power}"
+                  method="post"
+                  data-async-form
+                  data-update-regions="zone-list,power-summary"
+                  th:attr="data-confirm=${'Turn power on for ' + zone.name + '? All buildings and streetlights within this zone will be powered on.'}"
+                >
+                  <input
+                    type="hidden"
+                    name="zoneId"
+                    th:value="${zone.id}"
+                  /><input
+                    type="hidden"
+                    name="zoneType"
+                    th:value="${zone.type}"
+                  />
+                  <input type="hidden" name="powerOn" value="true" /><input
+                    type="hidden"
+                    name="cityId"
+                    th:value="${selectedCityId}"
+                  />
+                  <button
+                    class="button primary"
+                    th:disabled="${zone.total == 0 or zone.on == zone.total}"
+                    th:title="${zone.total == 0 ? 'This zone has no devices' : (zone.on == zone.total ? 'All devices are already on' : 'Turn on power in this zone')}"
+                    th:attr="aria-label=${'Turn on ' + zone.name}"
+                  >
+                    Turn on
+                  </button>
+                </form>
+                <form
+                  th:action="@{/staff/power}"
+                  method="post"
+                  data-async-form
+                  data-update-regions="zone-list,power-summary"
+                  th:attr="data-confirm=${'Turn power off for ' + zone.name + '? This shuts down every building and streetlight within the zone.'}"
+                >
+                  <input
+                    type="hidden"
+                    name="zoneId"
+                    th:value="${zone.id}"
+                  /><input
+                    type="hidden"
+                    name="zoneType"
+                    th:value="${zone.type}"
+                  />
+                  <input type="hidden" name="powerOn" value="false" /><input
+                    type="hidden"
+                    name="cityId"
+                    th:value="${selectedCityId}"
+                  />
+                  <button
+                    class="button"
+                    th:disabled="${zone.on == 0}"
+                    th:title="${zone.total == 0 ? 'This zone has no devices' : (zone.on == 0 ? 'All devices are already off' : 'Turn off power in this zone')}"
+                    th:attr="aria-label=${'Turn off ' + zone.name}"
+                  >
+                    Turn off
+                  </button>
+                </form>
+              </div>
+            </article>
+          </div>
+          <div
+            class="empty-state filter-empty"
+            data-filter-empty="zones"
+            hidden
+          >
+            <strong>No matching zones.</strong>
+            <p>Try another search or zone level.</p>
+          </div>
+        </section>
+        <p class="quiet-note">
+          On means every device in the zone is powered on. Mixed means some
+          devices are on and others are off. Power commands change device state;
+          stored usage readings remain available.
+        </p>
+      </main>
+    </div>
+  </body>
+</html>

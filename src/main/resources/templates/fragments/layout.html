@@ -1,0 +1,154 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <aside
+      th:fragment="sidebar(active)"
+      class="sidebar"
+      id="sidebar"
+      th:classappend="${portalUser.cityManager} ? 'manager-sidebar'"
+    >
+      <div class="sidebar-content">
+        <a class="brand" th:href="@{/dashboard}" aria-label="SmartCity360 home"
+          ><span class="brand-mark"
+            ><svg viewBox="0 0 28 28" aria-hidden="true">
+              <path d="M4 24V12h6v12M11 24V4h7v20M19 24V9h5v15M2 25h24" />
+              <path d="M14 8h1m-1 4h1m-1 4h1" /></svg></span
+          ><span
+            >SmartCity<span class="brand-number">360</span
+            ><small>URBAN INTELLIGENCE</small></span
+          ></a
+        >
+        <div class="workspace">
+          <span class="workspace-icon" aria-hidden="true"
+            ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m12 3 9 5-9 5-9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5" /></svg
+          ></span>
+          <div>
+            <strong
+              th:text="${portalUser.staff ? 'Operations workspace' : 'Resident workspace'}"
+            ></strong
+            ><small>UrbanTech Solutions</small>
+          </div>
+          <span class="online-dot" title="Signed in"></span>
+        </div>
+        <div class="nav-label">WORKSPACE</div>
+        <nav aria-label="Main navigation">
+          <a
+            th:href="@{/dashboard}"
+            th:classappend="${active == 'dashboard'} ? 'active'"
+            th:attr="aria-current=${active == 'dashboard' ? 'page' : null}"
+            ><span aria-hidden="true"
+              ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"
+                /></svg
+            ></span>
+            Overview</a
+          >
+          <a th:href="@{/dashboard#energy}" class="energy-nav"
+            ><span aria-hidden="true"
+              ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M13 2 4 14h7l-1 8L20 10h-7Z" /></svg
+            ></span>
+            Energy insights</a
+          >
+          <a
+            th:href="@{/complaints}"
+            th:classappend="${active == 'complaints'} ? 'active'"
+            ><span aria-hidden="true"
+              ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M21 11a8 8 0 0 1-8 8H9l-6 3V11a9 9 0 1 1 18 0ZM7 8h10M7 12h7"
+                /></svg></span
+            ><span
+              th:text="${portalUser.staff ? 'Citizen complaints' : 'My complaints'}"
+            ></span
+          ></a>
+          <a
+            th:href="@{/policies}"
+            th:classappend="${active == 'policies'} ? 'active'"
+            ><span aria-hidden="true"
+              ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 2h9l4 4v16H6ZM14 2v5h5M9 11h7M9 15h7M9 19h4" /></svg
+            ></span>
+            City policies</a
+          >
+          <a
+            th:if="${portalUser.cityManager}"
+            th:href="@{/staff/power}"
+            th:classappend="${active == 'power'} ? 'active'"
+          >
+            <span aria-hidden="true"
+              ><svg class="ui-icon" viewBox="0 0 24 24">
+                <path d="M13 2 4 14h7l-1 8L20 10h-7Z" /></svg
+            ></span>
+            Zone power
+          </a>
+        </nav>
+        <div class="sidebar-note">
+          <span class="note-symbol" aria-hidden="true"
+            ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" /></svg></span
+          ><strong>A more connected city.</strong>
+          <p>One place to understand our energy, services and communities.</p>
+          <span class="small-tag">SMARTCITY360</span>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <span
+          class="avatar"
+          th:text="${#strings.substring(portalUser.displayName,0,1)}"
+        ></span>
+        <div>
+          <strong th:text="${portalUser.displayName}"></strong
+          ><small th:text="${portalUser.roleLabel}"></small>
+        </div>
+        <form th:action="@{/sign-out}" method="post">
+          <button class="logout" title="Sign out" aria-label="Sign out">
+            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 4H4v16h5M9 12h12M16 7l5 5-5 5" />
+            </svg>
+          </button>
+        </form>
+      </div>
+    </aside>
+    <header th:fragment="topbar(title)" class="topbar">
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-controls="sidebar"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 6h18M3 12h18M3 18h18" />
+        </svg>
+      </button>
+      <div class="breadcrumb">
+        Workspace <span>/</span> <strong th:text="${title}"></strong>
+      </div>
+      <div class="topbar-right">
+        <span class="date-label" data-today></span
+        ><span class="topbar-divider"></span
+        ><span
+          class="role-pill"
+          th:text="${portalUser.staff ? 'Staff portal' : 'Resident portal'}"
+        ></span>
+      </div>
+    </header>
+    <div th:fragment="messages" class="messages">
+      <div
+        th:if="${success}"
+        class="alert success"
+        role="status"
+        th:text="${success}"
+      ></div>
+      <div
+        th:if="${error}"
+        class="alert error"
+        role="alert"
+        th:text="${error}"
+      ></div>
+    </div>
+  </body>
+</html>
